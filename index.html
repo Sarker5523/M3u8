@@ -3,27 +3,42 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Video Merger</title>
+  <title>Video Downloader</title>
 </head>
 <body>
-  <h1>Video Merger</h1>
-  <p>Enter the M3U8 URL:</p>
+  <h1>M3U8 to MP4 Converter</h1>
   <form id="urlForm">
-    <input type="text" id="m3u8Url" placeholder="M3U8 URL" required>
-    <button type="submit">Submit</button>
+    <input type="text" id="m3u8Url" placeholder="Enter M3U8 URL" required>
+    <button type="submit">Convert</button>
   </form>
-
-  <div id="message"></div>
+  
+  <p id="status"></p>
+  <a id="downloadLink" style="display: none;" download>Download MP4</a>
 
   <script>
-    // Handle form submission
     document.getElementById('urlForm').addEventListener('submit', function(event) {
       event.preventDefault();
       const url = document.getElementById('m3u8Url').value;
-      document.getElementById('message').textContent = `Processing video at ${url}...`;
+      document.getElementById('status').textContent = "Processing...";
 
-      // Send URL to Google Colab or your server for processing
-      // Placeholder: Direct the URL to backend processing (e.g., API call to Google Colab)
+      fetch("/.netlify/functions/process-video", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ m3u8Url: url })
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.downloadUrl) {
+          document.getElementById('downloadLink').href = data.downloadUrl;
+          document.getElementById('downloadLink').textContent = "Download MP4";
+          document.getElementById('downloadLink').style.display = "block";
+        } else {
+          document.getElementById('status').textContent = "Error processing video.";
+        }
+      })
+      .catch(error => {
+        document.getElementById('status').textContent = "Server error.";
+      });
     });
   </script>
 </body>
